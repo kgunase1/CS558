@@ -1,10 +1,10 @@
 package CS558.RowTranspositionCipher;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
@@ -50,7 +50,7 @@ public class Trans  {
             }
         }
 
-        if(!operation.equals("enc") || !operation.equals("dec")) {
+        if(!operation.equals("enc") && !operation.equals("dec")) {
             System.err.println("Invalid Operation type, the opertion type should be either enc or dec.");
             System.exit(0);
         }
@@ -88,7 +88,7 @@ public class Trans  {
     }
 
     private static void doDecryption(int keyLength, String key, String inputFileName, String outputFileName) throws IOException {
-        String inputFileContent = readFile(outputFileName);
+        String inputFileContent = readFile(inputFileName);
         double contentLength = (double) inputFileContent.length()/keyLength;
         int rowLength = (int) Math.ceil(contentLength);
         char[][] decipherMatrix = new char[rowLength][keyLength];
@@ -104,11 +104,11 @@ public class Trans  {
                 decryptedText.append(decipherMatrix[i][j]);
             }
         }
-        writeFile(inputFileName, decryptedText.toString());
+        writeFile(outputFileName, decryptedText.toString());
     }
 
     private static String readFile(String inputFileName) throws FileNotFoundException {
-        File output = new File("/home/kgunase1/CS558/" + inputFileName);
+        File output = new File("/home/kgunase1/p1-kgunase1/CS558/" + inputFileName);
         String outputFileContent = "";
         try (Scanner outputFileScanner = new Scanner(output)) {
             outputFileScanner.useDelimiter("\\Z");
@@ -124,9 +124,12 @@ public class Trans  {
     }
 
     private static void writeFile(String outputFileName, String content) throws IOException{
-        Path outputPath = Path.of("/home/kgunase1/CS558/" + outputFileName);
+        BufferedWriter bufferedWriter;
         try {
-            Files.writeString(outputPath, content);
+            bufferedWriter = new BufferedWriter(new FileWriter("/home/kgunase1/p1-kgunase1/CS558/" + outputFileName, false));
+            bufferedWriter.write(content);
+            bufferedWriter.flush();
+            bufferedWriter.close();
         } catch (FileNotFoundException e) {
             System.err.println("Incorrect File Name / No such file or directory");
             System.exit(0);
