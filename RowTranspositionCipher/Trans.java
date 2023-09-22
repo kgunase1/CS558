@@ -1,5 +1,3 @@
-package CS558.RowTranspositionCipher;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -10,7 +8,7 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.Set;
 
-public class Trans  {
+public class Trans {
     public static void main(String[] args) throws IOException {
         isEmptyArguments(args);
         int keyLength = Integer.parseInt(args[0]);
@@ -40,11 +38,8 @@ public class Trans  {
         }
         Set<Integer> keySet = new HashSet<>();
         for(char c : key.toCharArray()) {
-            if(c < 49 || c > 57) {
-                System.err.println("inputfile " + inputFileName + " must contain only lowercase letters (a-z) or digits (0-9).");
-                System.exit(0);
-            }
-            if(!keySet.add(Integer.parseInt(String.valueOf(c)))) {
+            int number = Integer.parseInt(String.valueOf(c));
+            if(!keySet.add(number) || number > keyLength || number < 1) {
                 System.err.println("key " + key + " must include all digits from 1 to " + keyLength + " with each digit occurring only once.");
                 System.exit(0);
             }
@@ -72,7 +67,7 @@ public class Trans  {
                     inputFile.charAt(iterator) > 47  && inputFile.charAt(iterator) < 58) {
                         cipherMatrix[i][j] = inputFile.charAt(iterator++);
                     } else {
-                        System.err.println("inputfile must contain only lowercase letters (a-z) or digits (0-9)");
+                        System.err.println("inputfile " + inputFileName + " must contain only lowercase letters (a-z) or digits (0-9)");
                         System.exit(1);
                     }
                 }
@@ -108,7 +103,7 @@ public class Trans  {
     }
 
     private static String readFile(String inputFileName) throws FileNotFoundException {
-        File output = new File("/home/kgunase1/p1-kgunase1/CS558/" + inputFileName);
+        File output = new File(inputFileName);
         String outputFileContent = "";
         try (Scanner outputFileScanner = new Scanner(output)) {
             outputFileScanner.useDelimiter("\\Z");
@@ -126,7 +121,7 @@ public class Trans  {
     private static void writeFile(String outputFileName, String content) throws IOException{
         BufferedWriter bufferedWriter;
         try {
-            bufferedWriter = new BufferedWriter(new FileWriter("/home/kgunase1/p1-kgunase1/CS558/" + outputFileName, false));
+            bufferedWriter = new BufferedWriter(new FileWriter(outputFileName, false));
             bufferedWriter.write(content);
             bufferedWriter.flush();
             bufferedWriter.close();

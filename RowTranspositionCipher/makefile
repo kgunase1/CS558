@@ -13,4 +13,4 @@ compile:
 run:
 	java Trans.java 7 3412567 input output enc
 clean:
-	$(RM) *.class
+	rm -f *.class
