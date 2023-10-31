@@ -5,10 +5,14 @@ JC = javac
 .java.class:
 	$(JC) $(JFLAGS) $*.java
 CLASSES = \
-	Trans.java 
+	Client.java
+	Server.java
+	GenPasswd.java
 default: classes
 classes: $(CLASSES:.java=.class)
 compile:
+	javac Client.java
+	javac Server.java
 	javac GenPasswd.java
 run:
 	java GenPasswd.java 
