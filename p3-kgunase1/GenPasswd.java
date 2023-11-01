@@ -93,7 +93,7 @@ public class GenPasswd {
       return generatedPassword;
     }
 
-    private static boolean validateUserCredentials(String userId, String password) {
+    public static boolean validateUserCredentials(String userId, String password) {
       String currentDirectory = System.getProperty("user.dir") + "/";
       File file = new File(currentDirectory + "hashpasswd.txt");
       if(file.exists()) {

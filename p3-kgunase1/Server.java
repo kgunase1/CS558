@@ -24,10 +24,18 @@ public class Server {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("Client connected from " + clientSocket.getInetAddress());
                 InputStream inputStream = clientSocket.getInputStream();
+                OutputStream outputStream = clientSocket.getOutputStream();
                 byte[] buffer = new byte[1024];
                 int bytesRead = inputStream.read(buffer);
                 if (bytesRead > 0) {
                     String clientCredentialsData = new String(buffer, 0, bytesRead);
+                    String[] credentialsArray = clientCredentialsData.split(",");
+                    boolean isValid = GenPasswd.validateUserCredentials(credentialsArray[0], credentialsArray[1]);
+                    if(isValid)
+                        outputStream.write("Correct ID and password".getBytes());
+                    else
+                        outputStream.write("The ID/password is incorrect".getBytes());
+                    outputStream.flush();
                     System.out.println("Received ID and password: " + clientCredentialsData);
                 }
                 clientSocket.close();

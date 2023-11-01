@@ -1,8 +1,10 @@
 
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.Scanner;
 
 import javax.net.SocketFactory;
@@ -18,9 +20,27 @@ public class Client {
         try {
             int serverPort = Integer.parseInt(args[1]);
             SocketFactory socketFactory = SSLSocketFactory.getDefault();
-            Socket socket = socketFactory.createSocket(serverDomain, serverPort);
+            Socket socket;
+            socket = socketFactory.createSocket(serverDomain, serverPort);
             System.out.println("Connected to " + serverDomain + " on port " + serverPort);
             OutputStream outputStream = socket.getOutputStream();
+            InputStream inputStream = socket.getInputStream();
+            sendInputData( outputStream, inputStream);
+            socket.close();
+        }  catch(NumberFormatException numberFormatException) {
+            System.err.println("Port number should be a number.");
+            numberFormatException.printStackTrace();
+            System.exit(0);
+        }  catch (UnknownHostException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+            
+    }
+
+    private static void sendInputData(OutputStream outputStream, InputStream inputStream) {
+         try{
             Scanner scanner = new Scanner(System.in);
             System.out.println("Enter User ID:");
             String userId = scanner.nextLine();
@@ -28,13 +48,19 @@ public class Client {
             String password = scanner.nextLine();
             String credentials = userId + "," + password;
             outputStream.write(credentials.getBytes());
+            byte[] buffer = new byte[1024];
+            int bytesRead = inputStream.read(buffer);
+            if (bytesRead > 0) {
+                String serverMessage = new String(buffer, 0, bytesRead);
+                if(serverMessage.equals("Correct ID and password")) {
+                    System.out.println("Correct ID and password");
+                    System.exit(0);
+                } else {
+                    sendInputData(outputStream, inputStream);
+                }
+            }
             outputStream.flush();
             scanner.close();
-            socket.close();
-        } catch(NumberFormatException numberFormatException) {
-            System.err.println("Port number should be a number.");
-            numberFormatException.printStackTrace();
-            System.exit(0);
         } catch (IOException ioException) {
             System.err.println("Error occurred while establishing the connection.");
             ioException.printStackTrace();
