@@ -11,21 +11,26 @@ Code was tested on remote.cs.binghamton.edu
 
 With the help of makefile, 
 1) Compile : make compile
+    Note : All the three java files will be compiled
 2) Run : make run 
-    Note : default key, input and output files are given
+    Note : only the GenPasswd.java will run
 3) clean : make clean
 
 Another way is to run the below commands directly in the command line:
 
 1) To Compile use the below command :
-    javac Trans.java
+    javac GenPasswd.java
+    javac Server.java
+    javac Client.java
 
 2) To run the program :
-    1) java Trans.java 7 3412567 input output enc
-    or
-    2) java Trans.java 7 3412567 output input1 dec
+    1) java GenPasswd.java
+    2) java Server.java 8080
+    3) java Client.java remote*.cs.binghamton.edu 8080
+        Note: replace * with the corresponding domain name.
 
-keytool
-keytool -genkey -keyalg RSA -keysize 2048 -validity 365 -alias myserver -keystore keystore.jks
-keytool -export -keystore keystore.jks -alias myserver -file cert.pem -rfc
+keytool commands for generating public key certificate: 
+
+    1) keytool -genkey -keyalg RSA -keysize 2048 -validity 365 -alias myserver -keystore keystore.jks
+    2) keytool -export -keystore keystore.jks -alias myserver -file cert.pem -rfc
 

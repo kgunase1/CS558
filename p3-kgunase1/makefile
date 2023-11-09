@@ -4,17 +4,23 @@ JC = javac
 .SUFFIXES: .java .class
 .java.class:
 	$(JC) $(JFLAGS) $*.java
+
 CLASSES = \
-	Client.java
-	Server.java
+	Client.java \
+	Server.java \
 	GenPasswd.java
+
 default: classes
+
 classes: $(CLASSES:.java=.class)
+
 compile:
-	javac Client.java
-	javac Server.java
-	javac GenPasswd.java
+	$(JC) $(JFLAGS) Client.java
+	$(JC) $(JFLAGS) Server.java
+	$(JC) $(JFLAGS) GenPasswd.java
+
 run:
-	java GenPasswd.java 
+	java GenPasswd
+
 clean:
 	rm -f *.class
