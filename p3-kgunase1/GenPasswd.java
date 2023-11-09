@@ -118,7 +118,7 @@ public class GenPasswd {
 
         }
       } else
-        return true;
+          return true;
       return true;
     }  
 }

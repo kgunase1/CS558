@@ -25,3 +25,7 @@ Another way is to run the below commands directly in the command line:
     or
     2) java Trans.java 7 3412567 output input1 dec
 
+keytool
+keytool -genkey -keyalg RSA -keysize 2048 -validity 365 -alias myserver -keystore keystore.jks
+keytool -export -keystore keystore.jks -alias myserver -file cert.pem -rfc
+
