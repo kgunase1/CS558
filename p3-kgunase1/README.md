@@ -33,4 +33,6 @@ keytool commands for generating public key certificate:
 
     1) keytool -genkey -keyalg RSA -keysize 2048 -validity 365 -alias myserver -keystore keystore.jks
     2) keytool -export -keystore keystore.jks -alias myserver -file cert.pem -rfc
+    
+    No additional software is needed to be installed on remote.cs to execute the program.
 
