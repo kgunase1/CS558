@@ -1,5 +1,6 @@
 import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.security.KeyPair;
@@ -9,6 +10,10 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 
 public class RSAAlgorithm {
+
+    public static void main(String[] args) throws IOException {
+        doRSAAlgorithm();
+    }
     
     public static void doRSAAlgorithm() throws IOException{
         try {
@@ -17,10 +22,13 @@ public class RSAAlgorithm {
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
             PublicKey publicKey = keyPair.getPublic();
             PrivateKey privateKey = keyPair.getPrivate();
-            String publicKeyStr = java.util.Base64.getEncoder().encodeToString(publicKey.getEncoded());
-            writeFile("publicKey.txt", publicKeyStr);
-            System.out.println("Public Key: " + publicKey.getEncoded());
-            System.out.println("Private Key: " + privateKey.getEncoded());
+            try (FileOutputStream fos = new FileOutputStream("public.key")) {
+                fos.write(publicKey.getEncoded());
+            }
+            // String publicKeyStr = java.util.Base64.getEncoder().encodeToString(publicKey.getEncoded());
+            // writeFile("publicKey.txt", publicKeyStr);
+            // System.out.println("Public Key: " + publicKey.getEncoded());
+            // System.out.println("Private Key: " + privateKey.getEncoded());
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
