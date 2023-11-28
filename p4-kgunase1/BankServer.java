@@ -1,127 +1,85 @@
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.security.InvalidKeyException;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 public class BankServer {
+    private static final String PUBLIC_KEY_FILE = "public_key.txt";
+
     public static void main(String[] args) {
         try {
             if(args.length != 1) {
                 System.err.println("Incorrect number of arguments. This server program accepts one argument");
+                System.exit(0);
             }
             int portNumber = Integer.parseInt(args[0]);
             boolean serverFlag = true;
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-            keyPairGenerator.initialize(2048);
-            KeyPair keyPair = keyPairGenerator.generateKeyPair();
+            KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+            keyGen.initialize(2048);
+            KeyPair keyPair = keyGen.generateKeyPair();
             PublicKey publicKey = keyPair.getPublic();
             PrivateKey privateKey = keyPair.getPrivate();
-            try (FileOutputStream fos = new FileOutputStream("public.key")) {
-                fos.write(publicKey.getEncoded());
-                fos.close();
-            }
 
-            // int portNumber = 8081;
-            
+            ObjectOutputStream publicKeyOS = new ObjectOutputStream(new FileOutputStream(PUBLIC_KEY_FILE));
+            publicKeyOS.writeObject(publicKey);
+            publicKeyOS.close();
+
             ServerSocket serverSocket = new ServerSocket(portNumber);
             System.out.println("Server is listening on port " + portNumber);
 
-            Socket socket = serverSocket.accept();
-            System.out.println("Client connected.");
 
-            // System.out.println("Public Key: " + publicKey.getEncoded());
-            // System.out.println("Private Key: " + privateKey.getEncoded());
+            while (true) {
+                Socket socket = serverSocket.accept();
+                System.out.println("Client connected.");
+                ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
+                ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
+                byte[] encryptedSymmetricKey = (byte[]) inputStream.readObject();
+                byte[] encryptedData = (byte[]) inputStream.readObject();
+                Cipher rsaCipher = Cipher.getInstance("RSA");
+                rsaCipher.init(Cipher.DECRYPT_MODE, privateKey);
+                byte[] decryptedSymmetricKey = rsaCipher.doFinal(encryptedSymmetricKey);
+                SecretKey secretKey = new SecretKeySpec(decryptedSymmetricKey, 0, decryptedSymmetricKey.length, "AES");
+                Cipher aesCipher = Cipher.getInstance("AES");
+                aesCipher.init(Cipher.DECRYPT_MODE, secretKey);
+                byte[] decryptedCredentials = aesCipher.doFinal(encryptedData);
+                String userCred = new String(decryptedCredentials, StandardCharsets.UTF_8); // Assuming UTF-8 encoding, change as needed
 
-            while (serverFlag) {
-                OutputStream outputStream = socket.getOutputStream();
-                InputStream inputStream = socket.getInputStream();
-                System.out.println("going to read");
-                int symmetricKeyLength = inputStream.read();
-                byte[] encryptedSymmetricKey = new byte[symmetricKeyLength];
-                inputStream.read(encryptedSymmetricKey, 0, symmetricKeyLength);
-                System.out.println(encryptedSymmetricKey.toString());
-                System.out.println("key received");
 
-                int dataLength = inputStream.read();
-                byte[] userCredentials = new byte[dataLength];
-                inputStream.read(userCredentials, 0, dataLength);
-                System.out.println(userCredentials.toString());
-
-                Cipher rSACipher = Cipher.getInstance("RSA");
-                rSACipher.init(Cipher.DECRYPT_MODE, privateKey);
-                byte[] symmetricKey = rSACipher.doFinal(encryptedSymmetricKey);
-                SecretKey receivedSymmetricKey = new SecretKeySpec(symmetricKey, 0, symmetricKey.length, "AES");
-
-                Cipher aESCipher = Cipher.getInstance("AES");
-                aESCipher.init(Cipher.DECRYPT_MODE, receivedSymmetricKey);
-                byte[] userData = aESCipher.doFinal(userCredentials);
-                String userCred = userData.toString();
-                String[] userDataArr = userCred.split("||");
-
+                String[] userDataArr = userCred.split("\\|\\|");
                 String passwordContent = readFile("password");
                 String[] credentials = passwordContent.split("\\s+");
+                System.out.println(userDataArr[0]);
+                System.out.println(userDataArr[1]);
+                System.out.println(credentials[0]);
+                System.out.println(credentials[1]);
                 if(userDataArr[0].equals(credentials[0]) && userDataArr[1].equals(credentials[1])) {
-                    outputStream.write(("ID and password are correct").getBytes());
+                    outputStream.writeObject(("ID and password are correct").getBytes());
                     serverFlag = false;
                     socket.close();
                     serverSocket.close();
                     break;
                 } else {
-                    outputStream.write(("ID or password is incorrect").getBytes());
+                    outputStream.writeObject(("ID or password is incorrect").getBytes());
                 }
 
                 System.out.println(userCred);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
-        } catch(NoSuchAlgorithmException noSuchAlgorithmException) {
-            noSuchAlgorithmException.printStackTrace();
-        } catch (NoSuchPaddingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (InvalidKeyException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IllegalBlockSizeException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (BadPaddingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-    } 
-    
-    private static void writeFile(String outputFileName, String content) throws IOException {
-        BufferedWriter bufferedWriter;
-        try {
-            bufferedWriter = new BufferedWriter(new FileWriter(outputFileName, false));
-            bufferedWriter.write(content);
-            bufferedWriter.flush();
-            bufferedWriter.close();
-        } catch (FileNotFoundException e) {
-            System.err.println("Incorrect File Name / No such file or directory");
-            System.exit(0);
         }
     }
 
