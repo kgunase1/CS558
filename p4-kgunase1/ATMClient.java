@@ -56,7 +56,8 @@ public class ATMClient {
                 Cipher aesCipher = Cipher.getInstance("AES");
                 aesCipher.init(Cipher.ENCRYPT_MODE, symmetricKey);
                 byte[] userCredentials = aesCipher.doFinal((userId +"||"+ password).getBytes());
-    
+
+                outputStream.writeObject("credentials".getBytes());
                 outputStream.writeObject(encryptedSymmetricKey);
                 System.out.println("key sent");
                 outputStream.writeObject(userCredentials);
@@ -167,6 +168,7 @@ public class ATMClient {
             String recipientsId = scanner.next();
             System.out.println("Enter the amount to be transferred : ");
             int amount = scanner.nextInt();
+            outputStream.writeObject("transferMoney".getBytes());
             outputStream.writeObject((accountType + "||" + recipientsId + "||" + amount).getBytes());
             byte[] serverResponseByte = (byte[]) inputStream.readObject();
             String serverResponse = new String(serverResponseByte, StandardCharsets.UTF_8);
@@ -183,7 +185,21 @@ public class ATMClient {
     }
 
     private static void checkAccountBalance(ObjectOutputStream outputStream, ObjectInputStream inputStream) {
-
+        try {
+            outputStream.writeObject("checkBalance".getBytes());
+            byte[] savingsBalanceByte = (byte[]) inputStream.readObject();
+            String savingsBalance = new String(savingsBalanceByte, StandardCharsets.UTF_8);
+            byte[] checkingBalanceByte = (byte[]) inputStream.readObject();
+            String checkginBalance = new String(checkingBalanceByte, StandardCharsets.UTF_8);
+            System.out.println("Your savings account balance : " + savingsBalance);
+            System.out.println("Your checking account balance : "+ checkginBalance );
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
     
 }
