@@ -1,13 +1,9 @@
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -17,11 +13,13 @@ public class BankServerWorker implements Runnable {
     private Socket socket;
     private PrivateKey privateKey;
     private Map<String, String> credentialsMap;
+    private Utils utils;
 
     public BankServerWorker(Socket socketIn, PrivateKey privateKeyIn, Map<String, String> credentialsMapIn) {
         socket = socketIn;
         privateKey = privateKeyIn;
         credentialsMap = credentialsMapIn;
+        utils = new Utils();
     } 
 
     public void run() {
@@ -40,14 +38,9 @@ public class BankServerWorker implements Runnable {
                 byte[] decryptedCredentials = aesCipher.doFinal(encryptedData);
                 String userCred = new String(decryptedCredentials, StandardCharsets.UTF_8); // Assuming UTF-8 encoding, change as needed
                 String[] userDataArr = userCred.split("\\|\\|");
-                String passwordContent;
-                passwordContent = readFile("password");
-                String[] credentials = passwordContent.split("\\s+");
-                System.out.println(userDataArr[0]);
-                System.out.println(userDataArr[1]);
-                System.out.println(credentials[0]);
-                System.out.println(credentials[1]);
-                if(credentialsMap.containsKey(userDataArr[0]) && credentialsMap.get(userDataArr[0]).equals(credentials[1])) {
+                String userId = userDataArr[0];
+                String password = userDataArr[1];
+                if(credentialsMap.containsKey(userId) && credentialsMap.get(userId).equals(password)) {
                     outputStream.writeObject(("ID and password are correct").getBytes());
                 } else {
                     outputStream.writeObject(("ID or password is incorrect").getBytes());
@@ -59,28 +52,43 @@ public class BankServerWorker implements Runnable {
                 String[] clientData = clientRequest.split("\\|\\|");
                 String accountType = clientData[0];
                 String recipientsId = clientData[1];
-                int amount = Integer.parseInt(clientData[2]);
+                int transferAmount = Integer.parseInt(clientData[2]);
+                System.out.println(transferAmount);
 
-                String accountBalance = readFile("balance");
+                Map<String, Map<String, Integer>> balanceMap = utils.readBalanceFile("balance");
+                if(balanceMap.containsKey(recipientsId)) {
+                    if(balanceMap.containsKey(userId)) {
+                        int userBalance = balanceMap.get(userId).get(accountType);
+                        if(userBalance >= transferAmount) {
+                            balanceMap.get(recipientsId).put(accountType, balanceMap.get(recipientsId).get(accountType) + transferAmount);
+                            balanceMap.get(userId).put(accountType, balanceMap.get(userId).get(accountType) - transferAmount);
+                            writeIntoFile(balanceMap);
+                            outputStream.writeObject(("Your transaction is successful").getBytes());
+                        } else {
+                            outputStream.writeObject(("Your account does not have enough funds").getBytes());
+                        }
+                    } else {
+                        //wrong user id
+                    }
+                } else {
+                    outputStream.writeObject(("The recipient’s ID does not exist.").getBytes());
+                }
             }
         } catch(Exception e) {
             e.printStackTrace();
         }
     }
 
-    private static String readFile(String inputFileName) throws FileNotFoundException {
-        File output = new File(inputFileName);
-        String outputFileContent = "";
-        try (Scanner outputFileScanner = new Scanner(output)) {
-            outputFileScanner.useDelimiter("\\Z");
-            outputFileContent = outputFileScanner.next();
-        } catch (NoSuchElementException e) {
-            System.err.println("Incorrect File Name / No such file or directory");
-            System.exit(0);
-        } catch (FileNotFoundException e) {
-            System.err.println("Incorrect File Name / No such file or directory");
-            System.exit(0);
-        }
-        return outputFileContent;
+    private synchronized void writeIntoFile(Map<String, Map<String, Integer>> balanceMap) {
+        StringBuilder balance = new StringBuilder();
+        balanceMap.entrySet().stream().forEach(userId -> {
+            balance.append(userId.getKey()).append(" ");
+            userId.getValue().entrySet().stream().forEach(account -> {
+                balance.append(account.getValue()).append(" ");
+            });
+            balance.append("\n");
+        });
+        utils.writeIntoFile("balance", balance.toString());
     }
+
 }

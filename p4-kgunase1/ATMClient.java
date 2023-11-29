@@ -108,14 +108,14 @@ public class ATMClient {
 
     private static void displayATMMenu(ObjectOutputStream outputStream, ObjectInputStream inputStream, Socket socket) {
         boolean exitFlag = true;
-        Scanner scanner = new Scanner(System.in);
         while(exitFlag) {
             try {
                 System.out.println("Please select one of the following actions (enter 1, 2, or 3):");
                 System.out.println("1. Transfer money");
                 System.out.println("2. Check account balance");
                 System.out.println("3. Exit");
-                String optionSelected = scanner.next();
+                Scanner scanner = new Scanner(System.in);
+                String optionSelected = scanner.nextLine();
                 switch(optionSelected) {
                     case "1":
                         transferMoney(outputStream, inputStream);
@@ -126,6 +126,7 @@ public class ATMClient {
                     case "3":
                         exitFlag = false;
                         socket.close();
+                        // scanner.close();
                         break;
                     default:
                         break;
@@ -133,22 +134,24 @@ public class ATMClient {
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
-                
+                // scanner.close();
             }
         }
-        scanner.close();
+        // scanner.close();
     }
 
     private static void transferMoney(ObjectOutputStream outputStream, ObjectInputStream inputStream) {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Please select an account (enter 1 or 2):");
+        System.out.println("1. Savings");
+        System.out.println("2. Checking");
         String optionSelected = scanner.next();
         switch(optionSelected) {
             case "1":
                 transferMoney(outputStream, inputStream, "savings");
                 break;
             case "2":
-                transferMoney(outputStream, inputStream, "checkings");
+                transferMoney(outputStream, inputStream, "checking");
                 break;
             default:
                 System.out.println("Incorrect Option selected.");
@@ -165,7 +168,7 @@ public class ATMClient {
             String recipientsId = scanner.next();
             System.out.println("Enter the amount to be transferred : ");
             int amount = scanner.nextInt();
-            outputStream.writeObject(accountType + "||" + recipientsId + "||" + amount);
+            outputStream.writeObject((accountType + "||" + recipientsId + "||" + amount).getBytes());
             byte[] serverResponseByte = (byte[]) inputStream.readObject();
             String serverResponse = new String(serverResponseByte, StandardCharsets.UTF_8);
             System.out.println(serverResponse);

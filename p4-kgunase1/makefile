@@ -7,8 +7,7 @@ JC = javac
 
 CLASSES = \
 	ATMClient.java \
-	BankServer.java \
-	RSAAlgorithm.java
+	BankServer.java 
 
 default: classes
 
@@ -17,7 +16,6 @@ classes: $(CLASSES:.java=.class)
 compile:
 	$(JC) $(JFLAGS) ATMClient.java
 	$(JC) $(JFLAGS) BankServer.java
-	$(JC) $(JFLAGS) RSAAlgorithm.java
 
 run:
 	java GenPasswd

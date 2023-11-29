@@ -14,6 +14,7 @@ import java.util.Map;
 
 public class BankServer {
     private static final String PUBLIC_KEY_FILE = "public_key.txt";
+    private  static Utils utils;
 
     public static void main(String[] args) {
         try {
@@ -21,6 +22,7 @@ public class BankServer {
                 System.err.println("Incorrect number of arguments. This server program accepts one argument");
                 System.exit(0);
             }
+            utils = new Utils();
             int portNumber = Integer.parseInt(args[0]);
             Socket socket = null;
             KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
@@ -33,7 +35,7 @@ public class BankServer {
             publicKeyOS.close();
             ServerSocket serverSocket = new ServerSocket(portNumber);
             System.out.println("Server is listening on port " + portNumber);
-            Map<String, String> credentialsMap = readFile("password");
+            Map<String, String> credentialsMap = utils.readPasswordFile("password");
             while (true) {
                 socket = serverSocket.accept();
                 System.out.println("Client connected.");
@@ -44,19 +46,4 @@ public class BankServer {
         }
     }
 
-    public static Map<String, String> readFile(String fileName) {
-        Map<String, String> credMap = new HashMap<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] credData = line.split("\\s+");
-                credMap.put(credData[0], credData[1]);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-
-        }
-        return credMap;
-    }
 }
