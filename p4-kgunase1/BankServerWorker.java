@@ -24,9 +24,9 @@ public class BankServerWorker implements Runnable {
 
     public void run() {
         try {
+            ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
             while(true) {
-                ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
-                ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
                 byte[] encryptedSymmetricKey = (byte[]) inputStream.readObject();
                 byte[] encryptedData = (byte[]) inputStream.readObject();
                 Cipher rsaCipher = Cipher.getInstance("RSA");
@@ -47,31 +47,33 @@ public class BankServerWorker implements Runnable {
                 }
                 System.out.println(userCred);
 
-                byte[] clientRequestByte = (byte[]) inputStream.readObject();
-                String clientRequest = new String(clientRequestByte, StandardCharsets.UTF_8);
-                String[] clientData = clientRequest.split("\\|\\|");
-                String accountType = clientData[0];
-                String recipientsId = clientData[1];
-                int transferAmount = Integer.parseInt(clientData[2]);
-                System.out.println(transferAmount);
+                while(true) {
+                    byte[] clientRequestByte = (byte[]) inputStream.readObject();
+                    String clientRequest = new String(clientRequestByte, StandardCharsets.UTF_8);
+                    String[] clientData = clientRequest.split("\\|\\|");
+                    String accountType = clientData[0];
+                    String recipientsId = clientData[1];
+                    int transferAmount = Integer.parseInt(clientData[2]);
+                    System.out.println(transferAmount);
 
-                Map<String, Map<String, Integer>> balanceMap = utils.readBalanceFile("balance");
-                if(balanceMap.containsKey(recipientsId)) {
-                    if(balanceMap.containsKey(userId)) {
-                        int userBalance = balanceMap.get(userId).get(accountType);
-                        if(userBalance >= transferAmount) {
-                            balanceMap.get(recipientsId).put(accountType, balanceMap.get(recipientsId).get(accountType) + transferAmount);
-                            balanceMap.get(userId).put(accountType, balanceMap.get(userId).get(accountType) - transferAmount);
-                            writeIntoFile(balanceMap);
-                            outputStream.writeObject(("Your transaction is successful").getBytes());
+                    Map<String, Map<String, Integer>> balanceMap = utils.readBalanceFile("balance");
+                    if(balanceMap.containsKey(recipientsId)) {
+                        if(balanceMap.containsKey(userId)) {
+                            int userBalance = balanceMap.get(userId).get(accountType);
+                            if(userBalance >= transferAmount) {
+                                balanceMap.get(recipientsId).put(accountType, balanceMap.get(recipientsId).get(accountType) + transferAmount);
+                                balanceMap.get(userId).put(accountType, balanceMap.get(userId).get(accountType) - transferAmount);
+                                writeIntoFile(balanceMap);
+                                outputStream.writeObject(("Your transaction is successful").getBytes());
+                            } else {
+                                outputStream.writeObject(("Your account does not have enough funds").getBytes());
+                            }
                         } else {
-                            outputStream.writeObject(("Your account does not have enough funds").getBytes());
+                            
                         }
                     } else {
-                        //wrong user id
+                        outputStream.writeObject(("The recipient’s ID does not exist.").getBytes());
                     }
-                } else {
-                    outputStream.writeObject(("The recipient’s ID does not exist.").getBytes());
                 }
             }
         } catch(Exception e) {
@@ -90,5 +92,7 @@ public class BankServerWorker implements Runnable {
         });
         utils.writeIntoFile("balance", balance.toString());
     }
+
+    
 
 }

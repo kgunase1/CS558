@@ -73,8 +73,6 @@ public class ATMClient {
                     System.out.println(serverResponse);
                     displayATMMenu(outputStream, inputStream, socket);
                     credentialsFlag = false;
-                    // outputStream.close();
-                    // inputStream.close();
                     break;
                 }
             }
@@ -159,6 +157,7 @@ public class ATMClient {
                 transferMoney(outputStream, inputStream);
                 break;
         }
+        // scanner.close();
     }
 
     private static void transferMoney(ObjectOutputStream outputStream, ObjectInputStream inputStream, String accountType) {
@@ -177,7 +176,7 @@ public class ATMClient {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         } finally {
-            scanner.close();
+            // scanner.close();
         }
         
 
@@ -186,4 +185,5 @@ public class ATMClient {
     private static void checkAccountBalance(ObjectOutputStream outputStream, ObjectInputStream inputStream) {
 
     }
+    
 }
