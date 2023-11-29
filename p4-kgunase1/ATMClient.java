@@ -48,7 +48,6 @@ public class ATMClient {
 
             while(credentialsFlag) {
                 ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
-                ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
                 System.out.println("Enter User Id : ");
                 scanner = new Scanner(System.in);
                 String userId = scanner.next();
@@ -64,6 +63,7 @@ public class ATMClient {
                 System.out.println("user cred sent");
                 outputStream.flush();
 
+                ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
                 byte[] serverResponseByte = (byte[]) inputStream.readObject();
                 String serverResponse = new String(serverResponseByte, StandardCharsets.UTF_8); // Assuming UTF-8 encoding, change as needed
 
@@ -71,9 +71,10 @@ public class ATMClient {
                     System.out.println("Re-enter user Id and password");
                 } else {
                     System.out.println(serverResponse);
+                    displayATMMenu(outputStream, inputStream, socket);
                     credentialsFlag = false;
-                    outputStream.close();
-                    inputStream.close();
+                    // outputStream.close();
+                    // inputStream.close();
                     break;
                 }
             }
@@ -103,5 +104,83 @@ public class ATMClient {
         } finally {
             
         }
+    }
+
+    private static void displayATMMenu(ObjectOutputStream outputStream, ObjectInputStream inputStream, Socket socket) {
+        boolean exitFlag = true;
+        Scanner scanner = new Scanner(System.in);
+        while(exitFlag) {
+            try {
+                System.out.println("Please select one of the following actions (enter 1, 2, or 3):");
+                System.out.println("1. Transfer money");
+                System.out.println("2. Check account balance");
+                System.out.println("3. Exit");
+                String optionSelected = scanner.next();
+                switch(optionSelected) {
+                    case "1":
+                        transferMoney(outputStream, inputStream);
+                        break;
+                    case "2":
+                        checkAccountBalance(outputStream, inputStream);
+                        break;
+                    case "3":
+                        exitFlag = false;
+                        socket.close();
+                        break;
+                    default:
+                        break;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                
+            }
+        }
+        scanner.close();
+    }
+
+    private static void transferMoney(ObjectOutputStream outputStream, ObjectInputStream inputStream) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Please select an account (enter 1 or 2):");
+        String optionSelected = scanner.next();
+        switch(optionSelected) {
+            case "1":
+                transferMoney(outputStream, inputStream, "savings");
+                break;
+            case "2":
+                transferMoney(outputStream, inputStream, "checkings");
+                break;
+            default:
+                System.out.println("Incorrect Option selected.");
+                scanner.close();
+                transferMoney(outputStream, inputStream);
+                break;
+        }
+    }
+
+    private static void transferMoney(ObjectOutputStream outputStream, ObjectInputStream inputStream, String accountType) {
+        Scanner scanner = new Scanner(System.in);
+        try {
+            System.out.println("Enter the Recipients ID : ");
+            String recipientsId = scanner.next();
+            System.out.println("Enter the amount to be transferred : ");
+            int amount = scanner.nextInt();
+            outputStream.writeObject(accountType + "||" + recipientsId + "||" + amount);
+            byte[] serverResponseByte = (byte[]) inputStream.readObject();
+            String serverResponse = new String(serverResponseByte, StandardCharsets.UTF_8);
+            System.out.println(serverResponse);
+        } catch(IOException e) {
+
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } finally {
+            scanner.close();
+        }
+        
+
+    }
+
+    private static void checkAccountBalance(ObjectOutputStream outputStream, ObjectInputStream inputStream) {
+
     }
 }
