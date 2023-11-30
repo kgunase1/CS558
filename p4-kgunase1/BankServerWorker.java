@@ -82,7 +82,6 @@ public class BankServerWorker implements Runnable {
             String accountType = clientData[0];
             String recipientsId = clientData[1];
             int transferAmount = Integer.parseInt(clientData[2]);
-            System.out.println(transferAmount);
 
             Map<String, Map<String, Integer>> balanceMap = utils.readBalanceFile("balance");
             if (balanceMap.containsKey(recipientsId)) {
@@ -107,7 +106,6 @@ public class BankServerWorker implements Runnable {
         } catch (IOException ioException) {
             ioException.printStackTrace();
         } catch (ClassNotFoundException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } finally {
 
@@ -118,14 +116,17 @@ public class BankServerWorker implements Runnable {
         try {
             byte[] encryptedSymmetricKey = (byte[]) inputStream.readObject();
             byte[] encryptedData = (byte[]) inputStream.readObject();
+
             Cipher rsaCipher = Cipher.getInstance("RSA");
             rsaCipher.init(Cipher.DECRYPT_MODE, privateKey);
             byte[] decryptedSymmetricKey = rsaCipher.doFinal(encryptedSymmetricKey);
+
             SecretKey secretKey = new SecretKeySpec(decryptedSymmetricKey, 0, decryptedSymmetricKey.length, "AES");
             Cipher aesCipher = Cipher.getInstance("AES");
             aesCipher.init(Cipher.DECRYPT_MODE, secretKey);
             byte[] decryptedCredentials = aesCipher.doFinal(encryptedData);
-            String userCred = new String(decryptedCredentials, StandardCharsets.UTF_8); // Assuming UTF-8 encoding, change as needed
+
+            String userCred = new String(decryptedCredentials, StandardCharsets.UTF_8);
             String[] userDataArr = userCred.split("\\|\\|");
             String userId = userDataArr[0];
             String password = userDataArr[1];
@@ -134,27 +135,20 @@ public class BankServerWorker implements Runnable {
             } else {
                 outputStream.writeObject(("ID or password is incorrect").getBytes());
             }
-            System.out.println(userCred);
             return userId;
         } catch(ClassNotFoundException e) {
             e.printStackTrace();
         } catch (NoSuchAlgorithmException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (NoSuchPaddingException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (InvalidKeyException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (IllegalBlockSizeException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (BadPaddingException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } finally {
 

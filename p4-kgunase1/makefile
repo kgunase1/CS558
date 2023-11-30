@@ -18,7 +18,7 @@ compile:
 	$(JC) $(JFLAGS) BankServer.java
 
 run:
-	java GenPasswd
+	java BankServer 8080
 
 clean:
 	rm -f *.class

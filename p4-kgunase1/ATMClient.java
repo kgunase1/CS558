@@ -7,7 +7,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Scanner;
 
 import javax.crypto.BadPaddingException;
@@ -20,7 +19,7 @@ import javax.crypto.SecretKey;
 public class ATMClient {
     private static final String PUBLIC_KEY_FILE = "public_key.txt";
 
-    public static void main(String[] args) throws InvalidKeySpecException {
+    public static void main(String[] args) {
         if (args.length != 2) {
             System.err.println("Incorrect number of arguments : This Program accepts two argument. Domain name and Server Port");
             System.exit(0);
@@ -63,7 +62,7 @@ public class ATMClient {
                 outputStream.flush();
 
                 byte[] serverResponseByte = (byte[]) inputStream.readObject();
-                String serverResponse = new String(serverResponseByte, StandardCharsets.UTF_8); // Assuming UTF-8 encoding, change as needed
+                String serverResponse = new String(serverResponseByte, StandardCharsets.UTF_8);
 
                 if(serverResponse.equalsIgnoreCase("ID or password is incorrect")) {
                     System.out.println(serverResponse);
@@ -76,7 +75,6 @@ public class ATMClient {
                 }
             }
             socket.close();
-            // scanner.close();
         } catch (IOException e) {
             e.printStackTrace();
         } catch(NumberFormatException numberFormatException) {
@@ -84,19 +82,14 @@ public class ATMClient {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         } catch (NoSuchPaddingException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (InvalidKeyException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (IllegalBlockSizeException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (BadPaddingException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } finally {
             
@@ -124,7 +117,6 @@ public class ATMClient {
                         exitFlag = false;
                         endConnection(outputStream, inputStream);
                         socket.close();
-                        // scanner.close();
                         break;
                     default:
                         System.out.println("Incorrect input");
@@ -133,10 +125,9 @@ public class ATMClient {
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
-                // scanner.close();
+                
             }
         }
-        // scanner.close();
     }
 
     private static void endConnection(ObjectOutputStream outputStream, ObjectInputStream inputStream) {
@@ -165,7 +156,6 @@ public class ATMClient {
                 transferMoney(outputStream, inputStream);
                 break;
         }
-        // scanner.close();
     }
 
     private static void transferMoney(ObjectOutputStream outputStream, ObjectInputStream inputStream, String accountType) {
@@ -185,7 +175,7 @@ public class ATMClient {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         } finally {
-            // scanner.close();
+            
         }
         
 
@@ -201,10 +191,8 @@ public class ATMClient {
             System.out.println("Your savings account balance : " + savingsBalance);
             System.out.println("Your checking account balance : "+ checkginBalance );
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
