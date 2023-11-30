@@ -162,7 +162,6 @@ public class ATMClient {
                 break;
             default:
                 System.out.println("Incorrect Option selected.");
-                scanner.close();
                 transferMoney(outputStream, inputStream);
                 break;
         }
