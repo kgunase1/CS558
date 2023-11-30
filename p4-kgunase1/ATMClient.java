@@ -45,9 +45,9 @@ public class ATMClient {
             rsaCipher.init(Cipher.ENCRYPT_MODE, serverPublicKey);
             byte[] encryptedSymmetricKey = rsaCipher.doFinal(symmetricKey.getEncoded());
 
-
+            ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
             while(credentialsFlag) {
-                ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
                 System.out.println("Enter User Id : ");
                 scanner = new Scanner(System.in);
                 String userId = scanner.next();
@@ -59,16 +59,14 @@ public class ATMClient {
 
                 outputStream.writeObject("credentials".getBytes());
                 outputStream.writeObject(encryptedSymmetricKey);
-                System.out.println("key sent");
                 outputStream.writeObject(userCredentials);
-                System.out.println("user cred sent");
                 outputStream.flush();
 
-                ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
                 byte[] serverResponseByte = (byte[]) inputStream.readObject();
                 String serverResponse = new String(serverResponseByte, StandardCharsets.UTF_8); // Assuming UTF-8 encoding, change as needed
 
                 if(serverResponse.equalsIgnoreCase("ID or password is incorrect")) {
+                    System.out.println(serverResponse);
                     System.out.println("Re-enter user Id and password");
                 } else {
                     System.out.println(serverResponse);
@@ -124,10 +122,12 @@ public class ATMClient {
                         break;
                     case "3":
                         exitFlag = false;
+                        endConnection(outputStream, inputStream);
                         socket.close();
                         // scanner.close();
                         break;
                     default:
+                        System.out.println("Incorrect input");
                         break;
                 }
             } catch (IOException e) {
@@ -137,6 +137,14 @@ public class ATMClient {
             }
         }
         // scanner.close();
+    }
+
+    private static void endConnection(ObjectOutputStream outputStream, ObjectInputStream inputStream) {
+        try {
+            outputStream.writeObject("exit".getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void transferMoney(ObjectOutputStream outputStream, ObjectInputStream inputStream) {

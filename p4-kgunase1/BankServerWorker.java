@@ -33,7 +33,8 @@ public class BankServerWorker implements Runnable {
             ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
             String userId = null;
-            while(true) {
+            boolean flag = true;
+            while(flag) {
                 byte[] operationByte = (byte[]) inputStream.readObject();
                 String operation = new String(operationByte, StandardCharsets.UTF_8);
                 switch(operation) {
@@ -45,6 +46,13 @@ public class BankServerWorker implements Runnable {
                         break;
                     case "checkBalance":
                         checkBalance(inputStream, outputStream, userId);
+                        break;
+                    case "exit":
+                        flag = false;
+                        socket.close();
+                        break;
+                    default:
+                        break;
                 }
             }
         } catch(Exception e) {
