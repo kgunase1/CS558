@@ -16,7 +16,7 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
-public class ATMClient {
+public class Atm {
     private static final String PUBLIC_KEY_FILE = "public_key.txt";
 
     public static void main(String[] args) {

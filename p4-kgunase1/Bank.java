@@ -8,7 +8,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.Map;
 
-public class BankServer {
+public class Bank {
     private static final String PUBLIC_KEY_FILE = "public_key.txt";
     private  static Utils utils;
 

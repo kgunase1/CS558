@@ -6,19 +6,19 @@ JC = javac
 	$(JC) $(JFLAGS) $*.java
 
 CLASSES = \
-	ATMClient.java \
-	BankServer.java 
+	Atm.java \
+	Bank.java 
 
 default: classes
 
 classes: $(CLASSES:.java=.class)
 
 compile:
-	$(JC) $(JFLAGS) ATMClient.java
-	$(JC) $(JFLAGS) BankServer.java
+	$(JC) $(JFLAGS) Atm.java
+	$(JC) $(JFLAGS) Bank.java
 
 run:
-	java BankServer 8080
+	java Bank 8080
 
 clean:
 	rm -f *.class
